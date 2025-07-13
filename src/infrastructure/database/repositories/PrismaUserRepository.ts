@@ -40,18 +40,36 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
-  async getAllUsers(options: { page: number; limit: number }): Promise<{ users: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
+  async getAllUsers(options: { page: number; limit: number }): Promise<{ users: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         skip: (options.page - 1) * options.limit,
         take: options.limit,
-        where: { deletedAt: null }
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          age: true,
+          email: true,
+          accountStatus: true,
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true
+        }
       }),
       this.prisma.user.count({ where: { deletedAt: null } })
     ]);
 
     return {
-      users: users.map(this.toDomain),
+      users: users.map(user => ({
+        id: user.id,
+        Nombres: user.firstName,
+        Apellidos: user.lastName,
+        Edad: user.age,
+        correo: user.email,
+        Status: user.accountStatus
+      })),
       pagination: {
         total,
         page: options.page,
