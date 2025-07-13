@@ -14,6 +14,7 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma client
+RUN npm install
 RUN npx prisma generate
 
 # Build the application
@@ -44,4 +45,4 @@ ENV PORT=3002
 EXPOSE 3002
 
 # Command to run the application
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
