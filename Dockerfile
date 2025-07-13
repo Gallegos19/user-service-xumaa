@@ -36,5 +36,8 @@ COPY --from=builder --chown=node:node /app/prisma ./prisma
 USER node
 ENV NODE_ENV=production
 ENV PORT=3002
+ENV PRISMA_CLIENT_ENGINE_TYPE=binary
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+
 EXPOSE 3002
 CMD ["node", "dist/src/main.js"]
