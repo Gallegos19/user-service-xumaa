@@ -32,6 +32,10 @@ COPY --from=builder --chown=node:node /app/package*.json ./
 COPY --from=builder --chown=node:node /app/dist ./dist
 COPY --from=builder --chown=node:node /app/prisma ./prisma
 
+# Crea directorio logs con permisos correctos
+RUN mkdir -p /app/logs && \
+    chown -R node:node /app/logs
+
 # Configuración final
 USER node
 ENV NODE_ENV=production
