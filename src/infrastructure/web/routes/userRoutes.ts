@@ -12,6 +12,9 @@ export function createUserRoutes(userController: UserController, tutorRelationsh
   router.post('/avatar/:userId', (req, res) => userController.updateAvatar(req, res));
   router.get('/preferences/:userId', (req, res) => userController.getPreferences(req, res));
   router.put('/preferences/:userId', (req, res) => userController.updatePreferences(req, res));
+  router.get('/', (req, res) => userController.getAllUsers(req, res));
+  router.put('/:userId', (req, res) => userController.updateUser(req, res));
+  router.delete('/:userId', (req, res) => userController.deleteUser(req, res));
   // TutorRelationship
   router.post('/tutor-relationship', (req, res) => tutorRelationshipController.create(req, res));
   router.put('/tutor-relationship/:relationshipId/approve', (req, res) => tutorRelationshipController.approve(req, res));
@@ -19,4 +22,4 @@ export function createUserRoutes(userController: UserController, tutorRelationsh
   // UserRestrictions
   router.get('/restrictions/:userId', (req, res) => userRestrictionsController.getRestrictions(req, res));
   return router;
-} 
+}

@@ -19,4 +19,19 @@ export class UserCommandService implements UserCommandPort {
     await this.userRepository.save(user);
     return user;
   }
-} 
+
+  async updateUser(userId: string, userData: Partial<User>): Promise<User | null> {
+    return this.userRepository.updateUser(userId, userData);
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    // First check if user exists
+    const userExists = await this.userRepository.findById({ value: userId } as any);
+    if (!userExists) {
+      return false;
+    }
+    
+    // If user exists, proceed with deletion
+    return this.userRepository.deleteUser(userId);
+  }
+}

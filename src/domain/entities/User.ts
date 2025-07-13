@@ -7,18 +7,49 @@ export type UserRole = 'user' | 'user_minor';
 export type AccountStatus = 'active' | 'suspended' | 'pending_verification' | 'deactivated';
 
 export class User {
+  private readonly id: UserId;
+  
+  private readonly email: Email;
+  
+  private hashedPassword: Password;
+  
+  private readonly age: Age;
+  
+  private firstName?: string;
+  
+  private lastName?: string;
+  
+  private isVerified: boolean = false;
+  
+  private accountStatus: AccountStatus = 'pending_verification';
+  
+  private avatarUrl?: string;
+  
+  private readonly createdAt: Date = new Date();
+
   constructor(
-    private readonly id: UserId,
-    private readonly email: Email,
-    private hashedPassword: Password,
-    private readonly age: Age,
-    private firstName?: string,
-    private lastName?: string,
-    private isVerified: boolean = false,
-    private accountStatus: AccountStatus = 'pending_verification',
-    private avatarUrl?: string,
-    private readonly createdAt: Date = new Date()
-  ) {}
+    id: UserId,
+    email: Email,
+    hashedPassword: Password,
+    age: Age,
+    firstName?: string,
+    lastName?: string,
+    isVerified: boolean = false,
+    accountStatus: AccountStatus = 'pending_verification',
+    avatarUrl?: string,
+    createdAt: Date = new Date()
+  ) {
+    this.id = id;
+    this.email = email;
+    this.hashedPassword = hashedPassword;
+    this.age = age;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.isVerified = isVerified;
+    this.accountStatus = accountStatus;
+    this.avatarUrl = avatarUrl;
+    this.createdAt = createdAt;
+  }
 
   public static create(
     email: Email,
@@ -88,4 +119,4 @@ export class User {
   public setPasswordHash(password: Password): void {
     this.hashedPassword = password;
   }
-} 
+}

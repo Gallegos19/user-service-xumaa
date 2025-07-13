@@ -511,4 +511,188 @@ export class UserController {
       res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
     }
   }
+
+  /**
+   * @swagger
+   * /api/users:
+   *   get:
+   *     summary: Obtener todos los usuarios
+   *     description: Retorna una lista paginada de todos los usuarios
+   *     tags:
+   *       - Usuarios
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 10
+   *         description: Límite de resultados por página
+   *     responses:
+   *       200:
+   *         description: Lista de usuarios
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/User'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     total:
+   *                       type: integer
+   *                     page:
+   *                       type: integer
+   *                     limit:
+   *                       type: integer
+   *                     totalPages:
+   *                       type: integer
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async getAllUsers(req: Request, res: Response): Promise<void> {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const result = await this.userQueryPort.getAllUsers({
+        page: Number(page),
+        limit: Number(limit)
+      });
+      res.status(200).json({ 
+        success: true, 
+        data: result.users,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/{userId}:
+   *   put:
+   *     summary: Actualizar un usuario
+   *     description: Actualiza los datos básicos de un usuario
+   *     tags:
+   *       - Usuarios
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID del usuario
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UserUpdate'
+   *     responses:
+   *       200:
+   *         description: Usuario actualizado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       404:
+   *         description: Usuario no encontrado
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async updateUser(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId;
+      const userData = req.body;
+      const updatedUser = await this.userCommandPort.updateUser(userId, userData);
+      
+      if (!updatedUser) {
+        res.status(404).json({ success: false, error: 'Usuario no encontrado' });
+        return;
+      }
+      
+      res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/{userId}:
+   *   delete:
+   *     summary: Eliminar un usuario
+   *     description: Elimina un usuario del sistema (soft delete)
+   *     tags:
+   *       - Usuarios
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID del usuario
+   *     responses:
+   *       200:
+   *         description: Usuario eliminado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: boolean
+   *                   example: true
+   *       404:
+   *         description: Usuario no encontrado
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async deleteUser(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId;
+      const deleted = await this.userCommandPort.deleteUser(userId);
+      
+      if (!deleted) {
+        res.status(404).json({ success: false, error: 'Usuario no encontrado' });
+        return;
+      }
+      
+      res.status(200).json({ success: true, data: deleted });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  }
 }

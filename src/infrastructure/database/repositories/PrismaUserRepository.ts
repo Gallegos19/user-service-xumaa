@@ -40,6 +40,67 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
+  async getAllUsers(options: { page: number; limit: number }): Promise<{ users: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip: (options.page - 1) * options.limit,
+        take: options.limit,
+        where: { deletedAt: null }
+      }),
+      this.prisma.user.count({ where: { deletedAt: null } })
+    ]);
+
+    return {
+      users: users.map(this.toDomain),
+      pagination: {
+        total,
+        page: options.page,
+        limit: options.limit,
+        totalPages: Math.ceil(total / options.limit)
+      }
+    };
+  }
+
+  async updateUser(userId: string, userData: Partial<User>): Promise<User | null> {
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: userData.getFirstName && typeof userData.getFirstName === 'function' ? String(userData.getFirstName()) : undefined,
+        lastName: userData.getLastName && typeof userData.getLastName === 'function' ? String(userData.getLastName()) : undefined,
+        avatarUrl: userData.getAvatarUrl && typeof userData.getAvatarUrl === 'function' ? String(userData.getAvatarUrl()) : undefined,
+        isVerified: userData.getIsVerified && typeof userData.getIsVerified === 'function' ? Boolean(userData.getIsVerified()) : undefined,
+        accountStatus: userData.getAccountStatus && typeof userData.getAccountStatus === 'function' ? String(userData.getAccountStatus()) : undefined
+      }
+    });
+
+    return updatedUser ? this.toDomain(updatedUser) : null;
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      // First check if user exists and is not deleted
+      const user = await this.prisma.user.findFirst({
+        where: { 
+          id: userId,
+          deletedAt: null
+        }
+      });
+      if (!user) return false; // User doesn't exist or is already deleted
+      
+
+      // Perform soft delete
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { 
+          deletedAt: new Date() 
+        }
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   async findById(userId: UserId): Promise<User | null> {
     const userRecord = await this.prisma.user.findUnique({
       where: { id: userId.value }
@@ -124,4 +185,4 @@ export class PrismaUserRepository implements IUserRepository {
     
     return user;
   }
-} 
+}

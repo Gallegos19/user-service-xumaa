@@ -6,4 +6,6 @@ export interface UserCommandPort {
     lastName?: string;
     age?: number;
   }): Promise<User | null>;
-} 
+  updateUser(userId: string, userData: Partial<User>): Promise<User | null>;
+  deleteUser(userId: string): Promise<boolean>;
+}
