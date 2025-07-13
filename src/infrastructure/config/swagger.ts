@@ -1,5 +1,6 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-const packageJson = require('../../../package.json');
+import * as path from 'path';
+const packageJson = require(path.resolve(process.cwd(), 'package.json'));
 const version = packageJson.version;
 
 const options = {
