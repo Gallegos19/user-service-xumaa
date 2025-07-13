@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@config/*": ["src/infrastructure/config/*"],
+      "@controllers/*": ["src/infrastructure/web/controllers/*"],
+      "@middlewares/*": ["src/infrastructure/web/middleware/*"],
+      "@routes/*": ["src/infrastructure/web/routes/*"],
+      "@services/*": ["src/application/services/*"],
+      "@repositories/*": ["src/infrastructure/database/repositories/*"],
+      "@entities/*": ["src/domain/entities/*"],
+      "@value-objects/*": ["src/domain/value-objects/*"],
+      "@ports/*": ["src/application/ports/*"]
+    }
+  }
+}

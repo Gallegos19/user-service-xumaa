@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("USER_DB_URL")
+  directUrl = env("DIRECT_URL", env("USER_DB_URL"))
+}
+
+model User {
+  // Identificación y autenticación
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String              @unique @db.VarChar(255)
+  passwordHash      String              @map("password_hash") @db.VarChar(255)
+  username          String?             @unique @db.VarChar(100)
+  
+  // Información personal
+  firstName         String?             @map("first_name") @db.VarChar(100)
+  lastName          String?             @map("last_name") @db.VarChar(100)
+  dateOfBirth       DateTime?           @map("date_of_birth") @db.Date
+  age               Int?                @db.Integer
+  avatarUrl         String?             @map("avatar_url") @db.VarChar(500)
+  
+  // Estado de la cuenta
+  role              String              @default("user") @db.VarChar(20)
+  accountStatus     String              @default("pending_verification") @map("account_status") @db.VarChar(50)
+  isVerified        Boolean             @default(false) @map("is_verified")
+  emailVerifiedAt   DateTime?           @map("email_verified_at")
+  
+  // Preferencias
+  timezone          String              @default("America/Mexico_City") @db.VarChar(50)
+  language          String              @default("es") @db.VarChar(5)
+  
+  // Actividad
+  lastLoginAt       DateTime?           @map("last_login_at")
+  loginCount        Int                 @default(0) @map("login_count")
+  
+  // Auditoría
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  deletedAt         DateTime?           @map("deleted_at")
+  createdBy         String?             @map("created_by") @db.Uuid
+  updatedBy         String?             @map("updated_by") @db.Uuid
+
+  // Relaciones
+  sessions          UserSession[]
+  preferences       UserPreferences?
+  parentalConsents  ParentalConsent[]
+  tutorRelationships TutorRelationship[] @relation("TutorUser")
+  minorRelationships TutorRelationship[] @relation("MinorUser")
+  restrictions      UserRestrictions?
+  passwordResets    PasswordReset[]
+  oauthAccounts     OAuthAccount[]
+  deviceTokens      DeviceToken[]
+  emailVerifications EmailVerification[]
+
+  @@index([email])
+  @@index([accountStatus])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserSession {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String   @map("user_id") @db.Uuid
+  tokenHash              String   @map("token_hash") @db.VarChar(500)
+  refreshTokenHash       String?  @map("refresh_token_hash") @db.VarChar(500)
+  deviceInfo             Json     @default("{}") @map("device_info")
+  ipAddress              String?  @map("ip_address") @db.Inet
+  userAgent              String?  @map("user_agent") @db.Text
+  locationData           Json     @default("{}") @map("location_data")
+  sessionDurationMinutes Int?     @map("session_duration_minutes")
+  pagesVisited           Json     @default("[]") @map("pages_visited")
+  actionsCount           Int      @default(0) @map("actions_count")
+  startedAt              DateTime @default(now()) @map("started_at")
+  endedAt                DateTime? @map("ended_at")
+  expiresAt              DateTime @map("expires_at")
+  isActive               Boolean  @default(true) @map("is_active")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model UserPreferences {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                  String    @unique @map("user_id") @db.Uuid
+  darkMode                Boolean   @default(false) @map("dark_mode")
+  fontSize                Int       @default(14) @map("font_size")
+  soundEnabled            Boolean   @default(true) @map("sound_enabled")
+  pushNotifications       Boolean   @default(true) @map("push_notifications")
+  emailNotifications      Boolean   @default(true) @map("email_notifications")
+  marketingEmails         Boolean   @default(false) @map("marketing_emails")
+  dataCollectionConsent   Boolean   @default(false) @map("data_collection_consent")
+  accessibilityFeatures   String?   @map("accessibility_features") @db.Json
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  deletedAt               DateTime? @map("deleted_at")
+  createdBy               String?   @map("created_by") @db.Uuid
+  updatedBy               String?   @map("updated_by") @db.Uuid
+
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model ParentalConsent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  minorUserId     String    @map("minor_user_id") @db.Uuid
+  parentEmail     String    @map("parent_email") @db.VarChar(255)
+  parentName      String    @map("parent_name") @db.VarChar(255)
+  relationship    String    @db.VarChar(50)
+  consentToken    String    @unique @map("consent_token") @db.VarChar(500)
+  isApproved      Boolean   @default(false) @map("is_approved")
+  approvedAt      DateTime? @map("approved_at")
+  expiresAt       DateTime  @map("expires_at")
+  ipAddress       String?   @map("ip_address") @db.Inet
+  userAgent       String?   @map("user_agent") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  minorUser       User      @relation(fields: [minorUserId], references: [id], onDelete: Cascade)
+
+  @@index([minorUserId])
+  @@index([consentToken])
+  @@index([isApproved])
+  @@index([expiresAt])
+  @@map("parental_consents")
+}
+
+model TutorRelationship {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tutorUserId      String    @map("tutor_user_id") @db.Uuid
+  minorUserId      String    @map("minor_user_id") @db.Uuid
+  relationshipType String    @map("relationship_type") @db.VarChar(50)
+  status           String    @default("pending") @db.VarChar(20)
+  isActive         Boolean   @default(false) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+  createdBy        String?   @map("created_by") @db.Uuid
+  updatedBy        String?   @map("updated_by") @db.Uuid
+
+  tutorUser        User     @relation("TutorUser", fields: [tutorUserId], references: [id], onDelete: Cascade)
+  minorUser        User     @relation("MinorUser", fields: [minorUserId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorUserId, minorUserId])
+  @@map("tutor_relationships")
+}
+
+model UserRestrictions {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String    @unique @map("user_id") @db.Uuid
+  maxSessionMinutes  Int       @default(60) @map("max_session_minutes")
+  canUploadPhotos    Boolean   @default(true) @map("can_upload_photos")
+  canUseChat         Boolean   @default(true) @map("can_use_chat")
+  contentRatingMax   String    @default("general") @map("content_rating_max") @db.VarChar(20)
+  requiresSupervision Boolean  @default(false) @map("requires_supervision")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+  createdBy          String?   @map("created_by") @db.Uuid
+  updatedBy          String?   @map("updated_by") @db.Uuid
+
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_restrictions")
+}
+
+model PasswordReset {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  token      String    @unique @db.VarChar(500)
+  expiresAt  DateTime  @map("expires_at")
+  isUsed     Boolean   @default(false) @map("is_used")
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("password_resets")
+}
+
+model OAuthAccount {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  provider       String    @db.VarChar(50)
+  providerUserId String    @map("provider_user_id") @db.VarChar(255)
+  accessToken    String?   @map("access_token") @db.Text
+  refreshToken   String?   @map("refresh_token") @db.Text
+  expiresAt      DateTime? @map("expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@index([provider])
+  @@map("oauth_accounts")
+}
+
+model DeviceToken {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  token        String   @unique @db.VarChar(500)
+  platform     String   @db.VarChar(50)
+  appVersion   String?  @map("app_version") @db.VarChar(50)
+  deviceModel  String?  @map("device_model") @db.VarChar(100)
+  osVersion    String?  @map("os_version") @db.VarChar(50)
+  isActive     Boolean  @default(true) @map("is_active")
+  lastUsedAt   DateTime @default(now()) @map("last_used_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([isActive])
+  @@map("device_tokens")
+}
+
+model EmailVerification {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  email              String    @db.VarChar(255)
+  verificationToken  String    @unique @map("verification_token") @db.VarChar(500)
+  expiresAt          DateTime  @map("expires_at")
+  isUsed             Boolean   @default(false) @map("is_used")
+  usedAt             DateTime? @map("used_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([verificationToken])
+  @@index([email])
+  @@index([isUsed])
+  @@index([expiresAt])
+  @@map("email_verifications")
+}
