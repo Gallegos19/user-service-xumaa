@@ -38,8 +38,12 @@ const options = {
     }],
   },
   apis: [
+    // Source TypeScript definitions (development)
     './src/infrastructure/web/controllers/*.ts',
     './src/application/dto/*.ts',
+    // Compiled JavaScript definitions (production)
+    './dist/src/infrastructure/web/controllers/*.js',
+    './dist/src/application/dto/*.js',
   ],
 };
 
