@@ -121,6 +121,21 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findById(userId: UserId): Promise<User | null> {
     const userRecord = await this.prisma.user.findUnique({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,    
+        lastName: true,     
+        avatarUrl: true,   
+        age: true,
+        role: true,
+        isVerified: true,
+        accountStatus: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+        passwordHash: true,
+      },
       where: { id: userId.value }
     });
     if (!userRecord) return null;
@@ -178,29 +193,26 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   private toDomain(record: any): User {
-    // Si el registro no tiene password_hash, usamos un valor por defecto
-    // ya que la entidad User requiere una contraseña en su constructor
-    const password = record.password_hash 
-      ? new Password(record.password_hash)
-      : new Password('temporary_password'); // Contraseña temporal que no se usará
+    const password = record.passwordHash 
+      ? new Password(record.passwordHash)
+      : new Password('temporary_password');
       
     const user = new User(
       new UserId(record.id),
       new Email(record.email),
       password,
       new Age(record.age),
-      record.first_name,
-      record.last_name,
-      record.is_verified,
-      record.account_status,
-      record.created_at
+      record.firstName,       
+      record.lastName,        
+      record.isVerified,      
+      record.accountStatus,   
+      record.avatarUrl,       
+      new Date(record.createdAt)  
     );
     
-    // Si no había contraseña, la limpiamos para que no se use
-    if (!record.password_hash) {
-      (user as any).password = undefined;
+    if (!record.passwordHash) {
+      user.setPasswordHash(new Password(''));
     }
-    
     return user;
   }
 }
