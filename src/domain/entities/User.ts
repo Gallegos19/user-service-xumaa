@@ -3,7 +3,7 @@ import { Password } from '../value-objects/Password';
 import { UserId } from '../value-objects/UserId';
 import { Age } from '../value-objects/Age';
 
-export type UserRole = 'user' | 'user_minor';
+export type UserRole = 'user' | 'user_minor' | 'administrador' | 'moderador';
 export type AccountStatus = 'active' | 'suspended' | 'pending_verification' | 'deactivated';
 
 export class User {
@@ -18,6 +18,8 @@ export class User {
   private firstName?: string;
   
   private lastName?: string;
+  
+  private role?: string;
   
   private isVerified: boolean = false;
   
@@ -34,6 +36,7 @@ export class User {
     age: Age,
     firstName?: string,
     lastName?: string,
+    role?: string,
     isVerified: boolean = false,
     accountStatus: AccountStatus = 'pending_verification',
     avatarUrl?: string,
@@ -45,6 +48,7 @@ export class User {
     this.age = age;
     this.firstName = firstName;
     this.lastName = lastName;
+    this.role = role;
     this.isVerified = isVerified;
     this.accountStatus = accountStatus;
     this.avatarUrl = avatarUrl;
@@ -78,8 +82,8 @@ export class User {
     this.accountStatus = 'suspended';
   }
 
-  public getRole(): UserRole {
-    return this.age.isMinor() ? 'user_minor' : 'user';
+  public getRole(): string | undefined{
+    return this.role;
   }
 
   public getAvatarUrl(): string | undefined {

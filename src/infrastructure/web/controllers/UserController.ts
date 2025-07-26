@@ -109,6 +109,7 @@ export class UserController {
         email: user.getEmail().value,
         firstName: user.getFirstName(),
         lastName: user.getLastName(),
+        role: user.getRole(),
         age: user.getAge().value,
         isVerified: user.getIsVerified(),
         accountStatus: user.getAccountStatus(),

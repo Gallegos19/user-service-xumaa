@@ -11,7 +11,11 @@
       "@repositories/*": ["src/infrastructure/database/repositories/*"],
       "@entities/*": ["src/domain/entities/*"],
       "@value-objects/*": ["src/domain/value-objects/*"],
-      "@ports/*": ["src/application/ports/*"]
+      "@ports/*": ["src/application/ports/*"],
+      "@domain/*": ["src/domain/*"],
+      "@application/*": ["src/application/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@shared/*": ["src/shared/*"]
     }
   }
 }

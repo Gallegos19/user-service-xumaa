@@ -24,7 +24,7 @@ export class PrismaUserRepository implements IUserRepository {
         avatarUrl: user.getAvatarUrl(),
         isVerified: user.getIsVerified(),
         accountStatus: user.getAccountStatus(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       create: {
         id: user.getId().value,
@@ -125,7 +125,7 @@ export class PrismaUserRepository implements IUserRepository {
         id: true,
         email: true,
         firstName: true,    
-        lastName: true,     
+        lastName: true,    
         avatarUrl: true,   
         age: true,
         role: true,
@@ -203,7 +203,8 @@ export class PrismaUserRepository implements IUserRepository {
       password,
       new Age(record.age),
       record.firstName,       
-      record.lastName,        
+      record.lastName, 
+      record.role,       
       record.isVerified,      
       record.accountStatus,   
       record.avatarUrl,       
